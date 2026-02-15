@@ -117,8 +117,17 @@ router.get('/', async (req, res) => {
 
     res.json(wells);
   } catch (error) {
-    console.error('Error fetching wells:', error);
-    res.status(500).json({ error: 'Failed to fetch wells' });
+    console.error('Error fetching wells:', error.message);
+    console.error('Database configuration:', {
+      host: process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'welllog_db',
+      user: process.env.DB_USER || 'postgres'
+    });
+    res.status(500).json({ 
+      error: 'Failed to fetch wells',
+      message: error.message,
+      debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
