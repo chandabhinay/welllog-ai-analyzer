@@ -37,6 +37,7 @@ function Layout({ children }) {
               flexGrow: 1, 
               cursor: 'pointer',
               fontWeight: 700,
+              padding: '1rem 1rem',
               fontSize: '1.3rem',
               transition: 'opacity 0.3s ease',
               '&:hover': {
@@ -64,7 +65,7 @@ function Layout({ children }) {
       >
         <Container maxWidth="xl">
           <Typography variant="body2" color="text.secondary" align="center">
-            Well Log Analysis System © 2026 | Powered by Gemini AI
+            Well Log Analysis System © 2026 | Powered by Abhinay
           </Typography>
         </Container>
       </Box>
