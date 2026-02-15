@@ -2,15 +2,30 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const { testConnection } = require('./models');
+const { testConnection, syncDatabase } = require('./models');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 
-// Test database connection
-testConnection();
+// Initialize database on startup
+async function initDB() {
+  try {
+    const isConnected = await testConnection();
+    if (isConnected && process.env.NODE_ENV === 'production') {
+      console.log('Syncing database models...');
+      await syncDatabase();
+      console.log('Database models synced successfully');
+    }
+  } catch (error) {
+    console.error('Database initialization warning (non-fatal):', error.message);
+    // Continue running even if DB sync fails - fallback will be used
+  }
+}
+
+// Initialize DB before routes
+initDB();
 
 // Middleware
 app.use(cors({
