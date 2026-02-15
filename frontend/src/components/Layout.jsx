@@ -8,16 +8,44 @@ function Layout({ children }) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static">
-        <Toolbar>
-          <OilBarrelIcon sx={{ mr: 2, cursor: 'pointer' }} onClick={() => navigate('/')} />
+      <AppBar 
+        position="static" 
+        elevation={0}
+        sx={{
+          background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <Toolbar sx={{ py: 2 }}>
+          <OilBarrelIcon 
+            sx={{ 
+              mr: 2, 
+              cursor: 'pointer',
+              fontSize: '2rem',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'rotate(20deg) scale(1.1)',
+              }
+            }} 
+            onClick={() => navigate('/')} 
+          />
           <Typography 
             variant="h6" 
             component="div" 
-            sx={{ flexGrow: 1, cursor: 'pointer' }}
+            sx={{ 
+              flexGrow: 1, 
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '1.3rem',
+              transition: 'opacity 0.3s ease',
+              '&:hover': {
+                opacity: 0.8,
+              }
+            }}
             onClick={() => navigate('/')}
           >
-            Well Log Analysis System
+            💧 Well Log Analyzer
           </Typography>
         </Toolbar>
       </AppBar>
@@ -30,12 +58,13 @@ function Layout({ children }) {
           py: 3, 
           px: 2, 
           mt: 'auto', 
-          backgroundColor: (theme) => theme.palette.grey[200] 
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          borderTop: '1px solid #cbd5e1',
         }}
       >
         <Container maxWidth="xl">
           <Typography variant="body2" color="text.secondary" align="center">
-            Well Log Analysis System © 2026
+            Well Log Analysis System © 2026 | Powered by Gemini AI
           </Typography>
         </Container>
       </Box>
