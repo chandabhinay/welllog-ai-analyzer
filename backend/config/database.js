@@ -10,6 +10,13 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: false,
+    // Enable SSL for Render PostgreSQL (required)
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === 'production' ? {
+        require: true,
+        rejectUnauthorized: false
+      } : false
+    },
     pool: {
       max: 5,
       min: 0,
