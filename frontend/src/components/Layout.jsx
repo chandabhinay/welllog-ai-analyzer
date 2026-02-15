@@ -37,7 +37,7 @@ function Layout({ children }) {
               flexGrow: 1, 
               cursor: 'pointer',
               fontWeight: 700,
-              padding: '1rem 1rem',
+              marginTop: 1,
               fontSize: '1.3rem',
               transition: 'opacity 0.3s ease',
               '&:hover': {
