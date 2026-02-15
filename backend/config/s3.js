@@ -1,11 +1,14 @@
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { Upload } = require('@aws-sdk/lib-storage');
 require('dotenv').config();
 
-// Configure AWS S3
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'us-east-1'
+// Configure AWS S3 with v3 SDK
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
 });
 
 const bucketName = process.env.S3_BUCKET_NAME;
@@ -14,16 +17,19 @@ const bucketName = process.env.S3_BUCKET_NAME;
  * Upload file to S3
  */
 const uploadToS3 = async (fileBuffer, fileName, contentType) => {
-  const params = {
-    Bucket: bucketName,
-    Key: fileName,
-    Body: fileBuffer,
-    ContentType: contentType
-  };
-
   try {
-    const result = await s3.upload(params).promise();
-    return result.Location;
+    const upload = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: bucketName,
+        Key: fileName,
+        Body: fileBuffer,
+        ContentType: contentType
+      }
+    });
+
+    const result = await upload.done();
+    return `https://${bucketName}.s3.amazonaws.com/${fileName}`;
   } catch (error) {
     console.error('Error uploading to S3:', error);
     throw error;
@@ -34,13 +40,13 @@ const uploadToS3 = async (fileBuffer, fileName, contentType) => {
  * Download file from S3
  */
 const downloadFromS3 = async (fileName) => {
-  const params = {
-    Bucket: bucketName,
-    Key: fileName
-  };
-
   try {
-    const result = await s3.getObject(params).promise();
+    const command = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: fileName
+    });
+
+    const result = await s3Client.send(command);
     return result.Body;
   } catch (error) {
     console.error('Error downloading from S3:', error);
@@ -52,13 +58,13 @@ const downloadFromS3 = async (fileName) => {
  * Delete file from S3
  */
 const deleteFromS3 = async (fileName) => {
-  const params = {
-    Bucket: bucketName,
-    Key: fileName
-  };
-
   try {
-    await s3.deleteObject(params).promise();
+    const command = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: fileName
+    });
+
+    await s3Client.send(command);
     return true;
   } catch (error) {
     console.error('Error deleting from S3:', error);
@@ -67,7 +73,7 @@ const deleteFromS3 = async (fileName) => {
 };
 
 module.exports = {
-  s3,
+  s3Client,
   uploadToS3,
   downloadFromS3,
   deleteFromS3

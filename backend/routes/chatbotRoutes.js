@@ -2,7 +2,41 @@ const express = require('express');
 const router = express.Router();
 const { WellData, Well } = require('../models');
 const { Op } = require('sequelize');
-const openai = require('../config/openai');
+const genAI = require('../config/gemini');
+
+// Simple cache for chatbot responses
+const chatCache = new Map();
+const CHAT_CACHE_TTL = 1800000; // 30 minutes in milliseconds
+
+/**
+ * Generate cache key for chat requests
+ */
+function getChatCacheKey(wellId, message) {
+  return `chat_${wellId}_${message.toLowerCase().trim()}`;
+}
+
+/**
+ * Check cache and return if valid
+ */
+function getFromChatCache(key) {
+  const cached = chatCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CHAT_CACHE_TTL) {
+    console.log('Returning cached chat response');
+    return cached.data;
+  }
+  chatCache.delete(key);
+  return null;
+}
+
+/**
+ * Store in cache
+ */
+function saveToChatCache(key, data) {
+  chatCache.set(key, {
+    data,
+    timestamp: Date.now()
+  });
+}
 
 /**
  * Chatbot endpoint for conversational queries about well data
@@ -14,6 +48,13 @@ router.post('/query', async (req, res) => {
 
     if (!wellId || !message) {
       return res.status(400).json({ error: 'wellId and message are required' });
+    }
+
+    // Check cache first
+    const chatCacheKey = getChatCacheKey(wellId, message);
+    const cachedResponse = getFromChatCache(chatCacheKey);
+    if (cachedResponse) {
+      return res.json(cachedResponse);
     }
 
     // Fetch well information
@@ -79,29 +120,46 @@ Answer questions clearly and concisely. If the user asks about specific data val
       content: message
     });
 
-    // Call OpenAI API
+    // Call Gemini API
     let response = '';
     try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4.1-mini",
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 800
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `${contextInfo}\n\nConversation History:\n${messages.slice(1).map(m => `${m.role}: ${m.content}`).join('\n')}\n\nCurrent User Message: ${message}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 600
+        }
       });
 
-      response = completion.choices[0].message.content;
+      response = result.response.text();
     } catch (aiError) {
-      console.error('OpenAI API error:', aiError);
+      console.error('Gemini API error:', aiError);
       
       // Fallback response
       response = handleFallbackQuery(message, well);
     }
 
-    res.json({
+    const chatResponse = {
       wellId,
       response,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    // Cache the response
+    saveToChatCache(chatCacheKey, chatResponse);
+    
+    res.json(chatResponse);
   } catch (error) {
     console.error('Error processing chatbot query:', error);
     res.status(500).json({ 
