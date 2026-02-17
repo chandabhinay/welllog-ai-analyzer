@@ -65,7 +65,7 @@ function Layout({ children }) {
       >
         <Container maxWidth="xl">
           <Typography variant="body2" color="text.secondary" align="center">
-            Well Log Analysis System © 2026 | Powered by Abhinay
+            Well Log Analysis System © 2026 | Powered by M Rahul Sree.
           </Typography>
         </Container>
       </Box>

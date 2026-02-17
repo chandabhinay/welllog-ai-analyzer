@@ -13,7 +13,7 @@ const app = express();
 async function initDB() {
   try {
     const isConnected = await testConnection();
-    if (isConnected && process.env.NODE_ENV === 'production') {
+    if (isConnected) {
       console.log('Syncing database models...');
       await syncDatabase();
       console.log('Database models synced successfully');

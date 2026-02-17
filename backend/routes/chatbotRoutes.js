@@ -6,7 +6,7 @@ const genAI = require('../config/gemini');
 
 // Simple cache for chatbot responses
 const chatCache = new Map();
-const CHAT_CACHE_TTL = 1800000; // 30 minutes in milliseconds
+const CHAT_CACHE_TTL = 18000000; // 30 minutes in milliseconds
 
 /**
  * Generate cache key for chat requests
